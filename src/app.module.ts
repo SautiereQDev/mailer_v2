@@ -3,13 +3,14 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import * as Joi from 'joi';
+import { MailModule } from './mail/mail.module';
+import Joi from 'joi';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: [`.env.${process.env.NODE_ENV ?? 'development'}`, '.env'],
       cache: true,
       expandVariables: true,
       validationSchema: Joi.object({
@@ -19,6 +20,14 @@ import * as Joi from 'joi';
         PORT: Joi.string().default('3000'),
         DATABASE_URL: Joi.string().required(),
         JWT_SECRET: Joi.string().required(),
+        SMTP_HOST: Joi.string().required(),
+        SMTP_PORT: Joi.number().default(587),
+        SMTP_USER: Joi.string().required(),
+        SMTP_PASS: Joi.string().required(),
+        SMTP_SECURE: Joi.boolean().default(false),
+        MAIL_TO: Joi.string()
+          .email()
+          .default('mailto:contac@quentinsautiere.com'),
       }),
     }),
     TypeOrmModule.forRootAsync({
@@ -32,6 +41,7 @@ import * as Joi from 'joi';
         logging: configService.get('NODE_ENV') === 'development',
       }),
     }),
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
