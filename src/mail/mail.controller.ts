@@ -1,34 +1,18 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { MailService } from './mail.service';
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-
-export class SendMailDto {
-  @IsNotEmpty()
-  @IsString()
-  name: string;
-
-  @IsNotEmpty()
-  @IsEmail()
-  email: string;
-
-  @IsOptional()
-  @IsString()
-  company?: string;
-
-  @IsNotEmpty()
-  @IsString()
-  message: string;
-}
+import { SendMailDto } from './dto/contact-mail.dto';
+import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 
 @Controller('mail')
 export class MailController {
   constructor(private readonly mailService: MailService) {}
 
-  @Post()
+  @Post('send')
+  @UseGuards(ApiKeyGuard)
   async sendMail(
-    @Body() mailData: SendMailDto,
+    @Body() contactMailDto: SendMailDto,
   ): Promise<{ success: boolean; message: string }> {
-    await this.mailService.sendContactMail(mailData);
-    return { success: true, message: 'Email envoyé avec succès' };
+    await this.mailService.sendContactMail(contactMailDto);
+    return { message: 'Email envoyé avec succès', success: true };
   }
 }
