@@ -1,4 +1,3 @@
-// src/app.module.ts
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -6,7 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailModule } from './mail/mail.module';
 import { AuthModule } from './auth/auth.module';
-import Joi from 'joi';
+import * as Joi from 'joi';
 
 @Module({
   imports: [
@@ -24,8 +23,8 @@ import Joi from 'joi';
         JWT_SECRET: Joi.string().required(),
         SMTP_HOST: Joi.string().required(),
         SMTP_PORT: Joi.number().default(587),
-        SMTP_USER: Joi.string().required(),
-        SMTP_PASS: Joi.string().required(),
+        SMTP_USER: Joi.string().allow('').default(''),
+        SMTP_PASS: Joi.string().allow('').default(''),
         SMTP_SECURE: Joi.boolean().default(false),
         MAIL_TO: Joi.string()
           .email()
