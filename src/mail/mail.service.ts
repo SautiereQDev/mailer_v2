@@ -4,13 +4,7 @@ import * as nodemailer from 'nodemailer';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import Handlebars from 'handlebars';
-
-interface ContactMailData {
-  name: string;
-  email: string;
-  company?: string;
-  message: string;
-}
+import { SendMailDto } from './dto/contact-mail.dto';
 
 export interface SentMessageInfo {
   messageId: string;
@@ -43,7 +37,7 @@ export class MailService {
     }
   }
 
-  async sendContactMail(mailData: ContactMailData): Promise<SentMessageInfo> {
+  async sendContactMail(mailData: SendMailDto): Promise<SentMessageInfo> {
     try {
       const templatePath = path.join(process.cwd(), 'views', 'mail.hbs');
       let html: string;
