@@ -3,10 +3,6 @@ import * as packageJson from '../package.json';
 
 @Injectable()
 export class AppService {
-  getHello(): string {
-    return 'Hello World!';
-  }
-
   getApiInfo(): Record<string, any> {
     return {
       name: 'Mailer API',
