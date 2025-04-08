@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
@@ -11,7 +11,9 @@ interface JwtPayload {
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(configService: ConfigService) {
+  private readonly logger = new Logger(JwtStrategy.name);
+
+  constructor(private readonly configService: ConfigService) {
     const secretOrKey = configService.get<string>('JWT_SECRET');
     if (!secretOrKey) {
       throw new Error("JWT_SECRET n'est pas défini");
@@ -22,12 +24,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       ignoreExpiration: false,
       secretOrKey,
     });
+
+    this.logger.log('JwtStrategy initialisée');
   }
 
   validate(payload: JwtPayload): JwtPayload {
-    if (!payload.isAdmin) {
-      throw new UnauthorizedException('Accès réservé aux administrateurs');
-    }
+    this.logger.debug(`Payload reçu: ${JSON.stringify(payload)}`);
     return payload;
   }
 }

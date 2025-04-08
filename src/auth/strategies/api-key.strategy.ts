@@ -22,8 +22,6 @@ export class ApiKeyStrategy extends PassportStrategy(Strategy, 'api-key') {
   }
 
   private extractApiKey(req: Request): string | undefined {
-    const key =
-      (req.headers['x-api-key'] as string) || (req.query.apiKey as string);
-    return key;
+    return (req.headers['x-api-key'] as string) || (req.query.apiKey as string);
   }
 }

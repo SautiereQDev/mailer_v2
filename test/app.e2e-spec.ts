@@ -1,22 +1,69 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { App } from 'supertest/types';
+import { Test } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 
-describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+describe('Routes E2E', () => {
+  let validToken: string;
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = moduleRef.createNestApplication();
     await app.init();
+
+    // Générer un token valide pour les tests
+    const jwtService = app.get(JwtService);
+    validToken = jwtService.sign({ sub: 'testuser', role: 'admin' });
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer()).get('/').expect(200);
+  it("renvoie les informations de l'API sur GET /", async () => {
+    await request(app.getHttpServer())
+      .get('/')
+      .expect(200)
+      .expect((res) => {
+        const body = res.body as {
+          name: string;
+          version: string;
+          description: string;
+          endpoints: any;
+        };
+        expect(body).toHaveProperty('name');
+        expect(body).toHaveProperty('version');
+        expect(body).toHaveProperty('description');
+        expect(body).toHaveProperty('endpoints');
+      });
+  });
+
+  it('crée une clé API sur POST /mailer/api-keys avec une autorisation valide', async () => {
+    await request(app.getHttpServer())
+      .post('/mailer/api-keys')
+      .set('Authorization', `Bearer ${validToken}`)
+      .send({
+        name: 'Clé Test',
+        description: 'Description Test',
+        rateLimit: 10,
+      })
+      .expect(201);
+  });
+
+  it("renvoie 401 sur POST /mailer/api-keys sans en-tête d'autorisation", async () => {
+    await request(app.getHttpServer())
+      .post('/mailer/api-keys')
+      .send({
+        name: 'Clé Test',
+        description: 'Description Test',
+        rateLimit: 10,
+      })
+      .expect(401);
+  });
+
+  it('renvoie 400 sur POST /mailer/api-keys avec des données invalides', async () => {
+    await request(app.getHttpServer())
+      .post('/mailer/api-keys')
+      .set('Authorization', 'Bearer valid.jwt.token')
+      .send({ name: '', description: 'Description Test' })
+      .expect(400);
   });
 });
